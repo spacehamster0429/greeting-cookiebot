@@ -1,4 +1,4 @@
-# Pure Greeting Cookiebot
+# Greeting Cookiebot
 
 ## 쿠키봇 초대: https://discord.com/oauth2/authorize?client_id=1207379728730689626
 
