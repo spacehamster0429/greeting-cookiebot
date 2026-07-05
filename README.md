@@ -2,7 +2,7 @@
 
 Discord 서버의 입장·퇴장 인사를 담당하는 작은 봇입니다. 서버별 채널과 메시지 템플릿을 설정할 수 있습니다
 
-### 쿠키봇 초대: https://bots.serika.duckdns.org/cookiebot/
+### 쿠키봇 소개 페이지: https://bots.serika.duckdns.org/cookiebot/
 ###### 위 주소의 봇은 테스트용으로 운영 중이며, 동작이 불안정할 수 있습니다. 실사용은 권장하지 않습니다.
 
 ## 기능
