@@ -111,6 +111,21 @@ db.pragma("foreign_keys = ON");
 db.pragma("journal_mode = WAL");
 db.pragma("synchronous = NORMAL");
 
+function restrictDbFilePermissions() {
+  for (const filePath of [DB_PATH, `${DB_PATH}-wal`, `${DB_PATH}-shm`]) {
+    if (!fs.existsSync(filePath)) {
+      continue;
+    }
+    try {
+      fs.chmodSync(filePath, 0o600);
+    } catch {
+      log("warn", `DB 파일 권한 제한 실패: ${path.basename(filePath)}`);
+    }
+  }
+}
+
+restrictDbFilePermissions();
+
 function getTableColumns(tableName) {
   return new Set(db.prepare(`PRAGMA table_info(${tableName})`).all().map((row) => row.name));
 }
@@ -140,6 +155,7 @@ function initDb() {
   for (const tableName of LEGACY_AI_TABLES) {
     db.prepare(`DROP TABLE IF EXISTS ${tableName}`).run();
   }
+  restrictDbFilePermissions();
 }
 
 function isServerRegistered(guildId) {
