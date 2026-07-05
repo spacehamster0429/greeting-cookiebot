@@ -1,0 +1,21 @@
+services:
+  cookiebot:
+    build: .
+    image: pure-greeting-cookiebot:latest
+    container_name: pure-greeting-cookiebot
+    restart: unless-stopped
+    init: true
+    user: "${COOKIEBOT_UID:-1000}:${COOKIEBOT_GID:-1000}"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,size=16m
+    env_file:
+      - .env
+    environment:
+      COOKIEBOT_DB_PATH: /app/data/cookiebot.db
+      TZ: Asia/Seoul
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
