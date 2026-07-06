@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/spacehamster0429/pure-greeting-cookiebot.git"
+    "url": "https://github.com/spacehamster0429/greeting-cookiebot.git"
   },
   "main": "src/index.js",
   "scripts": {
