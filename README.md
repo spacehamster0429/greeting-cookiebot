@@ -43,10 +43,13 @@ COOKIEBOT_DB_PATH=./data/cookiebot.db
 
 ```bash
 mkdir -p data logs
+podman build --format docker -t localhost/pure-greeting-cookiebot:latest .
 podman compose up -d --build
 ```
 
-Compose는 `.env`를 읽고 DB를 `data/`, 로그용 디렉터리를 `logs/`에 보존합니다. 두 디렉터리와 `.env`는 Git에서 제외됩니다.
+Podman으로 이미지의 `HEALTHCHECK` 메타데이터를 보존하려면 Docker 이미지 형식으로 빌드해야 합니다. Compose는 `.env`를 읽고 DB를 `data/`, 로그용 디렉터리를 `logs/`에 보존합니다. 두 디렉터리와 `.env`는 Git에서 제외됩니다.
+
+컨테이너 내부의 `127.0.0.1:3032/healthz`는 Discord 연결과 SQLite 연결이 모두 준비된 경우에만 `200`을 반환합니다. 이 포트는 호스트에 공개할 필요가 없습니다.
 
 ## 명령어
 

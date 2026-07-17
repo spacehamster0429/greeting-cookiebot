@@ -6,12 +6,13 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/spacehamster0429/greeting-cookiebot.git"
+    "url": "https://github.com/spacehamster0429/pure-greeting-cookiebot.git"
   },
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "check": "node --check src/index.js"
+    "check": "node --check src/index.js && node --check src/health-server.js && node --test test/*.test.js",
+    "test": "node --test test/*.test.js"
   },
   "engines": {
     "node": ">=22"

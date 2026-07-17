@@ -22,6 +22,12 @@ const {
   SlashCommandBuilder,
 } = require("discord.js");
 const dotenv = require("dotenv");
+const {
+  DEFAULT_HEALTH_HOST,
+  closeHealthServer,
+  createHealthServer,
+  parseHealthPort,
+} = require("./health-server");
 
 const BASE_DIR = path.resolve(__dirname, "..");
 dotenv.config({ path: path.join(BASE_DIR, ".env"), quiet: true });
@@ -29,6 +35,8 @@ dotenv.config({ path: path.join(BASE_DIR, ".env"), quiet: true });
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const OWNER_ID = parseOwnerId(process.env.OWNER_ID);
 const DB_PATH = resolveDbPath(process.env.COOKIEBOT_DB_PATH);
+const HEALTH_HOST = String(process.env.HEALTH_HOST || DEFAULT_HEALTH_HOST).trim() || DEFAULT_HEALTH_HOST;
+const HEALTH_PORT = parseHealthPort(process.env.HEALTH_PORT);
 
 const MAX_TEMPLATE_LENGTH = 1500;
 const DISCORD_MESSAGE_LIMIT = 2000;
@@ -527,6 +535,28 @@ const client = new Client({
     parse: [],
   },
 });
+let healthServer = null;
+
+function isApplicationReady() {
+  if (!client.isReady() || !db.open) {
+    return false;
+  }
+  return db.prepare("SELECT 1 AS ready").get()?.ready === 1;
+}
+
+function startHealthServer() {
+  const server = createHealthServer({
+    isReady: isApplicationReady,
+  });
+  server.once("error", (error) => {
+    logError("상태 확인 서버 오류", error);
+    process.exit(1);
+  });
+  server.listen(HEALTH_PORT, HEALTH_HOST, () => {
+    log("info", `Health server listening on ${HEALTH_HOST}:${HEALTH_PORT}/healthz`);
+  });
+  return server;
+}
 
 function noMentions() {
   return { parse: [] };
@@ -1262,21 +1292,32 @@ process.on("uncaughtException", (error) => {
   logError("처리되지 않은 예외", error);
 });
 
+let isShuttingDown = false;
 async function shutdown(signal) {
+  if (isShuttingDown) {
+    return;
+  }
+  isShuttingDown = true;
   log("info", "종료 신호를 받았습니다.", { signal });
   await sendShutdownDm();
   await client.destroy();
-  db.close();
+  await closeHealthServer(healthServer);
+  healthServer = null;
+  if (db.open) {
+    db.close();
+  }
   process.exit(0);
 }
 
-process.once("SIGINT", () => {
-  shutdown("SIGINT");
-});
+function handleShutdown(signal) {
+  shutdown(signal).catch((error) => {
+    logError("정상 종료 실패", error, { signal });
+    process.exit(1);
+  });
+}
 
-process.once("SIGTERM", () => {
-  shutdown("SIGTERM");
-});
+process.once("SIGINT", () => handleShutdown("SIGINT"));
+process.once("SIGTERM", () => handleShutdown("SIGTERM"));
 
 function main() {
   if (!DISCORD_TOKEN) {
@@ -1284,6 +1325,7 @@ function main() {
   }
 
   initDb();
+  healthServer = startHealthServer();
   client.login(DISCORD_TOKEN);
 }
 
