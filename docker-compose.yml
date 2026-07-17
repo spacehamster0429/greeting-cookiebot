@@ -16,6 +16,12 @@ services:
     environment:
       COOKIEBOT_DB_PATH: /app/data/cookiebot.db
       TZ: Asia/Seoul
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3032/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
