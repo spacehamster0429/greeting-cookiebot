@@ -18,6 +18,7 @@ const {
   Events,
   GatewayIntentBits,
   MessageFlags,
+  Partials,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } = require("discord.js");
@@ -531,6 +532,7 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
   ],
+  partials: [Partials.GuildMember],
   allowedMentions: {
     parse: [],
   },

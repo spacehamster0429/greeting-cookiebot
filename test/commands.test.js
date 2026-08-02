@@ -35,9 +35,22 @@ class StubDatabase {
 }
 
 const originalLoad = Module._load;
+let clientOptions;
 Module._load = function loadWithStub(request, parent, isMain) {
   if (request === "better-sqlite3") {
     return StubDatabase;
+  }
+  if (request === "discord.js") {
+    const discord = originalLoad.call(this, request, parent, isMain);
+    return {
+      ...discord,
+      Client: class TestClient extends discord.Client {
+        constructor(options) {
+          clientOptions = options;
+          super(options);
+        }
+      },
+    };
   }
   return originalLoad.call(this, request, parent, isMain);
 };
@@ -50,7 +63,7 @@ try {
   Module._load = originalLoad;
 }
 
-const { MessageFlags, PermissionFlagsBits } = require("discord.js");
+const { MessageFlags, Partials, PermissionFlagsBits } = require("discord.js");
 
 function getCommand(name) {
   const command = commandPayload.find((item) => item.name === name);
@@ -94,6 +107,10 @@ function createInteraction({ admin = false } = {}) {
     },
   };
 }
+
+test("캐시되지 않은 멤버의 퇴장을 처리하도록 멤버 partial을 활성화한다", () => {
+  assert.deepEqual(clientOptions.partials, [Partials.GuildMember]);
+});
 
 test("인사설정보기는 일반 사용자 명령어로 유지한다", () => {
   const command = getCommand("인사설정보기");
