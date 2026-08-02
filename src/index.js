@@ -478,11 +478,11 @@ const commands = [
       )
       .setRequired(true)),
 
-  makeCommand("인사설정보기", "현재 인사 설정을 확인합니다."),
+  makeCommand("인사설정보기", "현재 입장/퇴장 인사 설정을 확인합니다."),
 
   makeAdminCommand("인사채널자동설정", "상단 텍스트 채널로 입장/퇴장 인사 채널을 자동 설정합니다."),
 
-  makeCommand("인사미리보기", "현재 인사 메시지를 미리 봅니다.")
+  makeAdminCommand("인사미리보기", "현재 인사 메시지를 미리 봅니다.")
     .addStringOption((option) => option
       .setName("종류")
       .setDescription("미리 볼 인사 종류")
@@ -810,6 +810,7 @@ async function handleShowGreetingConfig(interaction) {
   }
   await replySafe(interaction, {
     embeds: [buildConfigEmbed(interaction.guild, getConfig(interaction.guild.id))],
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -834,7 +835,7 @@ async function handleAutoSetGreetingChannels(interaction) {
 }
 
 async function handlePreviewGreeting(interaction) {
-  if (!(await ensureRegisteredServer(interaction))) {
+  if (!(await ensureAdminRegistered(interaction))) {
     return;
   }
 
@@ -904,7 +905,7 @@ async function handleHelp(interaction) {
       "- /입장메시지설정 [메시지] : 입장 인사 문구 지정",
       "- /퇴장메시지설정 [메시지] : 퇴장 인사 문구 지정",
       "- /인사기능설정 [종류] [상태] : 입장/퇴장 인사 켜기 또는 끄기",
-      "- /인사설정보기 : 현재 설정 확인",
+      "- /인사설정보기 : 현재 입장/퇴장 인사 설정 확인",
       "- /인사채널자동설정 : 상단 텍스트 채널로 입장/퇴장 채널 자동 지정",
       "- /인사미리보기 [종류] : 내 계정 기준으로 메시지 미리보기",
       "- /인사테스트 [종류] : 설정된 채널로 테스트 전송",
@@ -919,6 +920,7 @@ async function handleHelp(interaction) {
     ].join("\n")
     : [
       "**쿠키봇 도움말**",
+      "- /인사설정보기 : 현재 입장/퇴장 인사 설정 확인",
       "- /핑 : 봇 응답속도 확인",
       "- /도움말 : 명령어 안내",
       "서버 인사 설정은 관리자만 변경할 수 있습니다.",
@@ -1334,6 +1336,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  commandHandlers,
   commandPayload,
   commands,
   initDb,
