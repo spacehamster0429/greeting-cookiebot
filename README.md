@@ -44,10 +44,15 @@ COOKIEBOT_DB_PATH=./data/cookiebot.db
 ```bash
 mkdir -p data logs
 podman build --format docker -t localhost/pure-greeting-cookiebot:latest .
-podman compose up -d --build
+mkdir -p ~/.config/containers/systemd
+install -m 0644 pure-greeting-cookiebot.container ~/.config/containers/systemd/
+systemctl --user daemon-reload
+systemctl --user restart pure-greeting-cookiebot.service
 ```
 
-Podman으로 이미지의 `HEALTHCHECK` 메타데이터를 보존하려면 Docker 이미지 형식으로 빌드해야 합니다. Compose는 `.env`를 읽고 DB를 `data/`, 로그용 디렉터리를 `logs/`에 보존합니다. 두 디렉터리와 `.env`는 Git에서 제외됩니다.
+운영 환경에서는 rootless Podman Quadlet을 사용합니다. Quadlet은 `%h/apps/pure-greeting-cookiebot`의 `.env`를 읽고 DB를 `data/`, 로그용 디렉터리를 `logs/`에 보존하므로 저장소도 이 경로에 배치해야 합니다. 로그인하지 않은 상태에서도 사용자 서비스를 시작하려면 해당 계정에 systemd linger가 활성화되어 있어야 합니다.
+
+Podman으로 이미지의 `HEALTHCHECK` 메타데이터를 보존하려면 Docker 이미지 형식으로 빌드해야 합니다. `Notify=healthy`는 봇의 readiness 확인이 끝날 때까지 서비스 시작 완료를 기다리고, 이후 상태가 `unhealthy`로 바뀌면 컨테이너를 종료하여 systemd가 다시 시작하게 합니다. `data/`, `logs/`, `.env`는 Git과 컨테이너 빌드 컨텍스트에서 제외됩니다.
 
 컨테이너 내부의 `127.0.0.1:3032/healthz`는 Discord 연결과 SQLite 연결이 모두 준비된 경우에만 `200`을 반환합니다. 이 포트는 호스트에 공개할 필요가 없습니다.
 

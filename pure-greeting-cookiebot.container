@@ -1,0 +1,32 @@
+[Unit]
+Description=Pure Greeting Cookiebot
+
+[Container]
+Image=localhost/pure-greeting-cookiebot:latest
+ContainerName=pure-greeting-cookiebot
+EnvironmentFile=%h/apps/pure-greeting-cookiebot/.env
+Environment=COOKIEBOT_DB_PATH=/app/data/cookiebot.db
+Environment=TZ=Asia/Seoul
+Volume=%h/apps/pure-greeting-cookiebot/data:/app/data:Z
+Volume=%h/apps/pure-greeting-cookiebot/logs:/app/logs:Z
+UserNS=keep-id:uid=1000,gid=1000
+Pull=never
+ReadOnly=true
+NoNewPrivileges=true
+Tmpfs=/tmp:rw,nosuid,nodev,noexec,size=16m
+HealthCmd=node -e "fetch('http://127.0.0.1:3032/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+HealthInterval=30s
+HealthTimeout=5s
+HealthStartPeriod=60s
+HealthRetries=3
+HealthOnFailure=kill
+Notify=healthy
+
+[Service]
+Restart=always
+RestartSec=10
+TimeoutStartSec=120
+TimeoutStopSec=70
+
+[Install]
+WantedBy=default.target
